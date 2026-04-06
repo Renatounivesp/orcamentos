@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Novos BotÃµes e Elementos
     const btnNovo = document.getElementById('btn-novo');
+    const btnHistorico = document.getElementById('btn-historico');
     const historyModal = document.getElementById('history-modal');
     const closeHistoryBtn = document.getElementById('close-history');
     const historyList = document.getElementById('history-list');
