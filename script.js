@@ -1,28 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Lógica do Alternador de Tema
-    const themeToggle = document.getElementById('theme-toggle');
-    const currentTheme = localStorage.getItem('resaut_theme') || 'dark';
-    const themeIcon = themeToggle ? themeToggle.querySelector('i') : null;
+    // Lógica do Alternador de Tema (Protegida)
+    try {
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('resaut_theme') || 'dark';
+        const themeIcon = themeToggle ? themeToggle.querySelector('i') : null;
 
-    if (currentTheme === 'light') {
-        document.body.classList.add('light-theme');
-        if (themeIcon) themeIcon.className = 'fas fa-sun';
-    } else {
-        if (themeIcon) themeIcon.className = 'fas fa-moon';
-    }
+        if (currentTheme === 'light') {
+            document.body.classList.add('light-theme');
+            if (themeIcon) themeIcon.className = 'fas fa-sun';
+        } else if (themeIcon) {
+            themeIcon.className = 'fas fa-moon';
+        }
 
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('light-theme');
-            const isLight = document.body.classList.contains('light-theme');
-            const theme = isLight ? 'light' : 'dark';
-            localStorage.setItem('resaut_theme', theme);
-
-            if (themeIcon) {
-                themeIcon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
-            }
-        });
-    }
+        if (themeToggle) {
+            themeToggle.onclick = () => {
+                document.body.classList.toggle('light-theme');
+                const isLight = document.body.classList.contains('light-theme');
+                localStorage.setItem('resaut_theme', isLight ? 'light' : 'dark');
+                if (themeIcon) themeIcon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            };
+        }
+    } catch (e) { console.error("Erro no alternador de tema:", e); }
 
 
 
@@ -311,10 +309,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === document.getElementById('settings-modal')) document.getElementById('settings-modal').style.display = 'none';
     });
 
-    // Load Initial States
-    applyCompanyData();
-    loadDraft();
-    fetchFromCloud(); // Inicia a conexão com a nuvem imediatamente
+    // Load Initial States (Ordem Prioritária)
+    try { applyCompanyData(); } catch (e) { console.error("Erro applyCompanyData:", e); }
+    try { loadDraft(); } catch (e) { 
+        console.error("Erro loadDraft, resetando para padrão:", e);
+        document.getElementById('orcamento-data').valueAsDate = new Date();
+        addServiceRow();
+    }
+    
+    // Garante data se loadDraft falhou silenciosamente
+    const dataField = document.getElementById('orcamento-data');
+    if (dataField && !dataField.value) {
+        dataField.valueAsDate = new Date();
+    }
+
+    fetchFromCloud(); // Sincroniza em segundo plano
 
     // --- MODAL LOGIC ---
     openSettingsBtn.onclick = () => {
