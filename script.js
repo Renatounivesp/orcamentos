@@ -309,6 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load Initial States
     applyCompanyData();
     loadDraft();
+    fetchFromCloud(); // Inicia a conexão com a nuvem imediatamente
 
     // --- MODAL LOGIC ---
     openSettingsBtn.onclick = () => {
