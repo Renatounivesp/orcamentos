@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resaut - Gerador de Orçamentos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="main-header">
+            <div class="theme-switch-wrapper">
+                <button id="theme-toggle" class="btn-icon" title="Alternar Modo Claro/Escuro">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            <div class="header-actions">
+                <div id="sync-indicator" class="sync-status" title="Sincronizado com a nuvem">
+                    <i class="fas fa-cloud-upload-alt"></i> Online
+                </div>
+                <button id="btn-novo" class="btn-icon" title="Novo Orçamento">➕ Novo</button>
+                <button id="btn-historico" class="btn-icon" title="Ver Histórico">📋 Histórico</button>
+                <button id="open-settings" class="settings-trigger" title="Configurações">⚙️</button>
+            </div>
+            <div class="logo-container">
+                <img src="logo_resaut.png" alt="Logo" id="header-logo-img">
+            </div>
+            <div class="company-display">
+                <h1 id="display-company-name">RESAUT</h1>
+                <p id="display-company-tagline">Estética Automotiva | Funilaria e Pintura</p>
+                <div class="company-details">
+                    <span>CNPJ: <span id="display-company-cnpj">11.655.200/0001-07</span></span>
+                    <span>Tel: <span id="display-company-phone">(11) 94752-9171</span></span>
+                    <span>Insta: <span id="display-company-insta">@resautesteticaautomotiva</span></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <!-- FORMULÁRIO -->
+            <section class="form-section card">
+                <div class="section-header">
+                    <h2>Dados do Orçamento</h2>
+                </div>
+                
+                <form id="orcamento-form">
+                    <!-- CLIENTE -->
+                    <div class="input-group">
+                        <label>Cliente</label>
+                        <input type="text" id="cliente-nome" placeholder="Nome Completo" required>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Telefone</label>
+                            <input type="text" id="cliente-tel" placeholder="(00) 00000-0000">
+                        </div>
+                        <div class="input-group">
+                            <label>Data</label>
+                            <input type="date" id="orcamento-data">
+                        </div>
+                    </div>
+
+                    <!-- VEÍCULO -->
+                    <div class="input-divider">Veículo</div>
+                    <div class="grid-3">
+                        <div class="input-group">
+                            <label>Modelo</label>
+                            <input type="text" id="veiculo-modelo" placeholder="Ex: VW Golf">
+                        </div>
+                        <div class="input-group">
+                            <label>Placa</label>
+                            <input type="text" id="veiculo-placa" placeholder="ABC-1234">
+                        </div>
+                        <div class="input-group">
+                            <label>Cor</label>
+                            <input type="text" id="veiculo-cor" placeholder="Ex: Prata">
+                        </div>
+                    </div>
+
+                    <!-- SERVIÇOS -->
+                    <div class="input-divider">Serviços</div>
+                    <div id="services-list">
+                        <!-- Itens dinâmicos aqui -->
+                    </div>
+                    <button type="button" id="add-service" class="btn-secondary">+ Adicionar Serviço</button>
+
+                    <!-- RESUMO -->
+                    <div class="summary-section">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="subtotal-val">R$ 0,00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Desconto (R$)</span>
+                            <input type="number" id="desconto-val" value="0" step="0.01">
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total</span>
+                            <span id="total-val">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <!-- OBSERVAÇÕES -->
+                    <div class="input-group">
+                        <label>Observações</label>
+                        <textarea id="observacoes" rows="3" placeholder="Garantia, prazo, etc..."></textarea>
+                    </div>
+
+                    <div class="actions grid-2">
+                        <div class="input-group">
+                            <label>Status do Orçamento</label>
+                            <select id="orcamento-status" class="status-select">
+                                <option value="Pendente" selected>🟡 Pendente</option>
+                                <option value="Aprovado">🟢 Aprovado / Fechado</option>
+                                <option value="Cancelado">🔴 Cancelado</option>
+                            </select>
+                        </div>
+                        <button type="button" id="generate-pdf" class="btn-primary">Gerar PDF Profissional</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- PREVIEW (HIDDEN FOR PDF EXPORT) -->
+            <div id="preview-container">
+                <!-- O PDF será gerado a partir de um clone estilizado deste container -->
+                <div id="pdf-content" class="pdf-page">
+                    <div class="pdf-header">
+                        <img src="logo_resaut.png" class="pdf-logo">
+                        <div class="pdf-company-info">
+                            <h3 id="pdf-company-name">RESAUT - Estética Automotiva</h3>
+                            <p id="pdf-company-tagline">Funilaria e Pintura</p>
+                            <p id="pdf-company-cnpj">CNPJ: 11.655.200/0001-07</p>
+                            <p id="pdf-company-addr">Rua Francisco Polito, 16 - Vila Prudente, SP</p>
+                            <p id="pdf-company-contact">Tel: (11) 94752-9171 | @resautesteticaautomotiva</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="pdf-details">
+                        <div class="pdf-col">
+                            <strong>CLIENTE:</strong> <span id="pdf-cliente"></span><br>
+                            <strong>TEL:</strong> <span id="pdf-tel"></span>
+                        </div>
+                        <div class="pdf-col align-right">
+                            <strong>DATA:</strong> <span id="pdf-data"></span><br>
+                            <strong>VEÍCULO:</strong> <span id="pdf-veiculo"></span>
+                        </div>
+                    </div>
+                    <table class="pdf-table">
+                        <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Descrição</th>
+                                <th class="align-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pdf-services-body">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                    <div class="pdf-summary">
+                        <p>Subtotal: <span id="pdf-subtotal"></span></p>
+                        <p>Desconto: <span id="pdf-desconto"></span></p>
+                        <h2 class="pdf-total">TOTAL: <span id="pdf-total"></span></h2>
+                    </div>
+                    <div class="pdf-notes">
+                        <strong>Observações:</strong>
+                        <p id="pdf-notes-text"></p>
+                    </div>
+                    <div class="pdf-footer">
+                        <p>Orçamento válido por 7 dias. Obrigado pela preferência!</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE CONFIGURAÇÕES -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content card">
+            <span class="close-modal">&times;</span>
+            <h2>Configurações da Empresa</h2>
+            <div class="input-group">
+                <label>Logo da Empresa</label>
+                <input type="file" id="config-logo-input" accept="image/*">
+                <small>Recomendado: fundo transparente</small>
+            </div>
+            <div class="input-group">
+                <label>Nome da Empresa</label>
+                <input type="text" id="config-name" placeholder="Ex: Resaut">
+            </div>
+            <div class="input-group">
+                <label>Slogan / Subtítulo</label>
+                <input type="text" id="config-tagline" placeholder="Ex: Funilaria e Pintura">
+            </div>
+            <div class="input-group">
+                <label>WhatsApp / Telefone</label>
+                <input type="text" id="config-phone">
+            </div>
+            <div class="input-group">
+                <label>Instagram</label>
+                <input type="text" id="config-insta">
+            </div>
+            <div class="input-group">
+                <label>CNPJ</label>
+                <input type="text" id="config-cnpj">
+            </div>
+            <div class="input-group">
+                <label>Endereço Completo</label>
+                <textarea id="config-addr" rows="2"></textarea>
+            </div>
+            <button id="save-settings" class="btn-primary">Salvar Alterações</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <!-- MODAL HISTÓRICO -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" id="close-history">&times;</span>
+            <h2><i class="icon-history"></i> Histórico de Orçamentos</h2>
+            <div id="history-list" class="history-list">
+                <!-- Lista será preenchida via JS -->
+                <p style="text-align: center; color: #888; padding: 20px;">Nenhum orçamento salvo ainda.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
