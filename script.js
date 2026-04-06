@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- SUPABASE CONFIG ---
     // Substitua estas informações após criar seu projeto no Supabase
-    const SUPABASE_URL = 'https://SUA_URL_AQUI.supabase.co';
-    const SUPABASE_KEY = 'SUA_CHAVE_API_AQUI';
+    const SUPABASE_URL = 'https://yrhucnwuqxhfamdvubne.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyaHVjbnd1cXhoZmFtZHZ1Ym5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODUxMTgsImV4cCI6MjA5MTA2MTExOH0.FXa5fM3ld-mBwD6lZYFoae0I4q-piL6wSoLG1yIhYJ4';
     let supabase = null;
 
     if (SUPABASE_URL !== 'https://SUA_URL_AQUI.supabase.co') {
