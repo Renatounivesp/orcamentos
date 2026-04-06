@@ -165,14 +165,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchFromCloud() {
-        if (!supabase) return;
+        if (!supabase) return getHistory();
         try {
-            const { data, error } = await supabase.from('orcamentos').select('*').order('created_at', { ascending: false }).limit(50);
-            if (error) throw error;
+            const { data, error } = await supabase.from('orcamentos').select('id_local').limit(1);
             
-            if (data && data.length > 0) {
-                // Converter de volta para o formato local
-                const cloudHistory = data.map(item => ({
+            // Se o erro for de conexão ou a tabela não existir
+            if (error) {
+                console.error("Erro na nuvem:", error);
+                updateSyncIndicator(false);
+                return getHistory();
+            }
+
+            // Conexão bem sucedida
+            updateSyncIndicator(true);
+
+            // Agora busca os dados reais
+            const { data: fullData } = await supabase.from('orcamentos').select('*').order('created_at', { ascending: false }).limit(50);
+            
+            if (fullData && fullData.length > 0) {
+                const cloudHistory = fullData.map(item => ({
                     id: item.id_local,
                     date: new Date(item.created_at).toLocaleString('pt-br'),
                     cliente: item.cliente,
@@ -182,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: item.detalhes
                 }));
                 localStorage.setItem('resaut_history', JSON.stringify(cloudHistory));
-                updateSyncIndicator(true);
                 return cloudHistory;
             }
         } catch (e) {
